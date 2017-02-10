@@ -11,8 +11,6 @@ Executable Project1
   buildable: True
   build-depends:
       base -any,
-      QuickCheck -any,
-      random -any,
       parsec -any
   other-modules:
       ParserUtils

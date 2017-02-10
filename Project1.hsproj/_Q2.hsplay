@@ -1,4 +1,4 @@
 -- Haskell Playground 1.0
+parseAEE "If0 0 then 9+1 else 12"
 
-testParser 10
-testEval' 10
+interp "If0 1 then 3 else 5"

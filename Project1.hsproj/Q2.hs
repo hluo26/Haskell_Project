@@ -1,9 +1,4 @@
-<<<<<<< Updated upstream
 
-=======
---Name: Hao Luo--
---KUID: 273588--
-{-# LANGUAGE GADTs #-}
 
 module Q2 where
 
@@ -87,4 +82,4 @@ eval (If0 x y z) = let (Number x1) = (eval x)
                
 interp = eval . parseAEE
 
->>>>>>> Stashed changes
+

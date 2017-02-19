@@ -1,0 +1,16 @@
+name: project2
+version: 1.0
+cabal-version: 1.11
+build-type: Simple
+license: AllRightsReserved
+stability: experimental
+x-ghc-framework-version: 7.10.3-5.18-2
+x-last-ide-version: HfM1.3.2
+Executable project2
+  main-is: Project_2.hs
+  buildable: True
+  build-depends:
+      base -any,
+      parsec -any
+  other-modules:
+      ParserUtils

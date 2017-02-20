@@ -201,10 +201,22 @@ typeof (If x y z) = let t1 = (typeof x)
                         t3 = (typeof z)
                         in if t1 == (Right TBool) && t2 == t3
                         then t2
-                        else Left "Type Mismatch in +"
+                        else Left "Type Mismatch in If"
+                        
+--PART V--
 
 interp :: String -> Either String ABE
 interp e = let x = (parseABE e) in
                case (typeof x) of
-                 (Right _) -> (Right eval x)
+                 (Right _) -> (eval x)--let y = (optimize x) in
+                                  --case y of
+                                    --(Right x) -> (eval x)
                  (Left y) -> (Left y)
+                 
+--Second Problem--
+
+optimize :: ABE -> (Either String ABE)
+optimize (Plus x (Number 0)) = (Right x)
+optimize (If x y z) = if x==(Boolean True) then (Right y) else (Right z)
+
+

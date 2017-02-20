@@ -1,2 +1,5 @@
 -- Haskell Playground 1.0
-interp "3 / 0"
+optimize (If (Boolean True)(Number 4)(Number 3))
+
+interp ""
+

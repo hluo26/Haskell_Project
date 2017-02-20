@@ -108,7 +108,7 @@ eval (Div x y) = let t1 = (eval x)
                      (Left a) -> t1
                      (Right (Number v1)) -> case t2 of
                                           (Left b) -> t2
-                                          (Right (Number v2)) -> if v2 == 0 then (Left "Div by zero") else (Right(Number (v1 `div` v2)))
+                                          (Right (Number v2)) -> if v2 == 0 then (Left "Running time error: Divide by zero") else (Right(Number (v1 `div` v2)))
                                           (Right _) -> (Left "Type Error in /")
                      (Right _) -> (Left "Type Error in /")
                      
@@ -126,9 +126,9 @@ eval (Leq x y) = let t1 = (eval x)
                      t2 = (eval y)
                      in case t1 of 
                        (Left a) -> t1
-                       (Right (Boolean v1)) -> case t2 of
+                       (Right (Number v1)) -> case t2 of
                                               (Left b) -> t2
-                                              (Right (Boolean v2)) -> (Right(Boolean(v1 <= v2)))
+                                              (Right (Number v2)) -> (Right(Boolean(v1 <= v2)))
                                               (Right _) -> (Left "Type Error in <=")
                        (Right _) -> (Left "Type Error in <=")
                        
@@ -176,12 +176,12 @@ typeof (Mul x y) = let  t1 = (typeof x)
 typeof (Div x y) = let  t1 = (typeof x)
                         t2 = (typeof y)
                         in if t1 == (Right TNum) && t2 == (Right TNum)
-                        then (Right TNum)
+                        then if y==(Number 0) then (Left "Typing checking error: Divide by zero") else(Right TNum)
                         else Left "Type Mismatch in /"
                         
 typeof (And x y) = let  t1 = (typeof x)
                         t2 = (typeof y)
-                        in if t1 == (Right TBool) && t2 == (Right TBool)
+                        in if t1 == (Right TBool) && t2 == (Right TBool)  
                         then (Right TBool)
                         else Left "Type Mismatch in &&"
                         
@@ -208,15 +208,39 @@ typeof (If x y z) = let t1 = (typeof x)
 interp :: String -> Either String ABE
 interp e = let x = (parseABE e) in
                case (typeof x) of
-                 (Right _) -> (eval x)--let y = (optimize x) in
-                                  --case y of
-                                    --(Right x) -> (eval x)
+                 (Right _) -> let y = (optimize x) in
+                                  case y of
+                                   (Right x) -> (eval x)
                  (Left y) -> (Left y)
                  
 --Second Problem--
 
 optimize :: ABE -> (Either String ABE)
+
+optimize (Number x) = (Right(Number x))
+
+optimize (Boolean x) = (Right(Boolean x))
+
 optimize (Plus x (Number 0)) = (Right x)
-optimize (If x y z) = if x==(Boolean True) then (Right y) else (Right z)
 
+optimize (Plus (Number 0) y) = (Right y)
 
+optimize (Plus x y) = (Right(Plus x y))
+
+optimize (Minus x y) = (Right(Minus x y))
+
+optimize (Mul x y) = (Right(Mul x y))
+
+optimize (Div x y) = (Right(Div x y))
+
+optimize (And x y) = (Right(And x y))
+
+optimize (Leq x y) = (Right(Leq x y))
+
+optimize (IsZero x) = (Right(IsZero x))
+
+optimize (If (Boolean True) x y) = (Right x)
+
+optimize (If (Boolean False) x y) = (Right y)
+
+optimize (If x y z) = (Right(If x y z))

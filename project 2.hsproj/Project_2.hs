@@ -152,9 +152,59 @@ data TABE where
   TBool :: TABE
   deriving(Show, Eq)
   
-typeof :: ABE -> TABE 
-typeof (Number x) = TNum
+typeof :: ABE -> (Either String TABE) 
+typeof (Number x) = (Right TNum)
+typeof (Boolean x) = (Right TBool)
+typeof (Plus x y) = let t1 = (typeof x)
+                        t2 = (typeof y)
+                        in if t1 == (Right TNum) && t2 == (Right TNum)
+                        then (Right TNum)
+                        else Left "Type Mismatch in +"
+                        
+typeof (Minus x y) = let t1 = (typeof x)
+                         t2 = (typeof y)
+                         in if t1 == (Right TNum) && t2 == (Right TNum)
+                         then (Right TNum)
+                         else Left "Type Mismatch in -"
 
+typeof (Mul x y) = let  t1 = (typeof x)
+                        t2 = (typeof y)
+                        in if t1 == (Right TNum) && t2 == (Right TNum)
+                        then (Right TNum)
+                        else Left "Type Mismatch in *"
+                        
+typeof (Div x y) = let  t1 = (typeof x)
+                        t2 = (typeof y)
+                        in if t1 == (Right TNum) && t2 == (Right TNum)
+                        then (Right TNum)
+                        else Left "Type Mismatch in /"
+                        
+typeof (And x y) = let  t1 = (typeof x)
+                        t2 = (typeof y)
+                        in if t1 == (Right TBool) && t2 == (Right TBool)
+                        then (Right TBool)
+                        else Left "Type Mismatch in &&"
+                        
+typeof (Leq x y) = let  t1 = (typeof x)
+                        t2 = (typeof y)
+                        in if t1 == (Right TNum) && t2 == (Right TNum)
+                        then (Right TBool)
+                        else Left "Type Mismatch in <="
+                        
+typeof (IsZero x) = let t1 = (typeof x)
+                        in if t1 == (Right TNum) 
+                        then (Right TBool)
+                        else error "Type Mismatch in IsZero"
+                        
+typeof (If x y z) = let t1 = (typeof x)
+                        t2 = (typeof y)
+                        t3 = (typeof z)
+                        in if t1 == (Right TBool) && t2 == t3
+                        then t2
+                        else Left "Type Mismatch in +"
 
-                      
-interp = eval . parseABE
+interp :: String -> Either String ABE
+interp e = let x = (parseABE e) in
+               case (typeof x) of
+                 (Right _) -> (Right eval x)
+                 (Left y) -> (Left y)

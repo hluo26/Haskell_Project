@@ -176,12 +176,12 @@ typeof (Mul x y) = let  t1 = (typeof x)
 typeof (Div x y) = let  t1 = (typeof x)
                         t2 = (typeof y)
                         in if t1 == (Right TNum) && t2 == (Right TNum)
-                        then if y==(Number 0) then (Left "Typing checking error: Divide by zero") else(Right TNum)
+                        then if y==(Number 0) then (Left "Typing checking error: Divide by zero") else(Right TNum)                                
                         else Left "Type Mismatch in /"
                         
 typeof (And x y) = let  t1 = (typeof x)
                         t2 = (typeof y)
-                        in if t1 == (Right TBool) && t2 == (Right TBool)  
+                        in if t1 == (Right TBool) && t2 == (Right TBool)
                         then (Right TBool)
                         else Left "Type Mismatch in &&"
                         
@@ -199,9 +199,9 @@ typeof (IsZero x) = let t1 = (typeof x)
 typeof (If x y z) = let t1 = (typeof x)
                         t2 = (typeof y)
                         t3 = (typeof z)
-                        in if t1 == (Right TBool) && t2 == t3
-                        then t2
-                        else Left "Type Mismatch in If"
+                        in if t1 == (Right TBool)
+                        then if t2 == t3 then t2 else Left"Type Mismatch in If" 
+                        else Left "Type Mismatch in If"                       
                         
 --PART V--
 
@@ -212,35 +212,35 @@ interp e = let x = (parseABE e) in
                                   case y of
                                    (Right x) -> (eval x)
                  (Left y) -> (Left y)
-                 
+                  
 --Second Problem--
 
-optimize :: ABE -> (Either String ABE)
+optimize :: ABE -> Either String ABE
 
-optimize (Number x) = (Right(Number x))
+optimize (Number x) = Right(Number x)
 
-optimize (Boolean x) = (Right(Boolean x))
+optimize (Boolean x) = Right(Boolean x)
 
-optimize (Plus x (Number 0)) = (Right x)
+optimize (Plus x (Number 0)) = (optimize x)
 
-optimize (Plus (Number 0) y) = (Right y)
+optimize (Plus (Number 0) y) = (optimize y)
 
-optimize (Plus x y) = (Right(Plus x y))
+optimize (Plus x y) = Right(Plus x y)
 
-optimize (Minus x y) = (Right(Minus x y))
+optimize (Minus x y) = Right(Minus x y)
 
-optimize (Mul x y) = (Right(Mul x y))
+optimize (Mul x y) = Right(Mul x y)
 
-optimize (Div x y) = (Right(Div x y))
+optimize (Div x y) = Right(Div x y)
 
-optimize (And x y) = (Right(And x y))
+optimize (And x y) = Right(And x y)
 
-optimize (Leq x y) = (Right(Leq x y))
+optimize (Leq x y) = Right(Leq x y)
 
-optimize (IsZero x) = (Right(IsZero x))
+optimize (IsZero x) = Right(IsZero x)
 
-optimize (If (Boolean True) x y) = (Right x)
+optimize (If (Boolean True) x y) = (optimize x)
 
-optimize (If (Boolean False) x y) = (Right y)
+optimize (If (Boolean False) x y) = (optimize y)
 
-optimize (If x y z) = (Right(If x y z))
+optimize (If x y z) = Right(If x y z)

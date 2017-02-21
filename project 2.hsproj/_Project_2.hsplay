@@ -1,5 +1,14 @@
 -- Haskell Playground 1.0
-optimize (If (Boolean True)(Number 4)(Number 3))
+typeof (parseABE "if ((2 / 0) <= 4) then 1 else 2")
 
-interp ""
+interp "If 3+4 then 3 else 2"
 
+optimize (Plus(Plus(Number 3)(Number 3))(Number 0))
+
+interp "3+2+5"
+
+typeof (If (Leq(Number 10)(Number 8))(Number 6)(Number 5))
+
+typeof (parseABE "2/0<=4")
+
+optimize (parseABE "If True then If True then 1 else False else 2")

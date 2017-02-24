@@ -1,14 +1,22 @@
 -- Haskell Playground 1.0
 typeof (parseABE "if ((2 / 0) <= 4) then 1 else 2")
 
-interp "If 3+4 then 3 else 2"
+interpOp "If 3+4 then 3 else 2"
 
 optimize (Plus(Plus(Number 3)(Number 3))(Number 0))
 
-interp "3+2+5"
+interpOp "3+2+5"
+
+interpOp "If 3+5<=10 then 10-2 else 3*5"
 
 typeof (If (Leq(Number 10)(Number 8))(Number 6)(Number 5))
 
 typeof (parseABE "2/0<=4")
 
-optimize (parseABE "If True then If True then 1 else False else 2")
+optimize (parseABE "1+0+1")
+
+optimize (parseABE "If 2+3<=5 then if True then 2 else 4 else 3")
+
+optimize (parseABE "If True then If True then 2 else 5 else 10")
+
+interp "IsZero 3/0"

@@ -1,3 +1,5 @@
+--Name: Hao Luo--
+--KUID: 2737588--
 {-# LANGUAGE GADTs #-}
 module Project_2 where
   
@@ -22,6 +24,7 @@ data ABE where
   IsZero :: ABE -> ABE
   If ::ABE -> ABE -> ABE -> ABE
   deriving(Show,Eq)
+
   
 --PART II--
   
@@ -194,7 +197,7 @@ typeof (Leq x y) = let  t1 = (typeof x)
 typeof (IsZero x) = let t1 = (typeof x)
                         in if t1 == (Right TNum) 
                         then (Right TBool)
-                        else error "Type Mismatch in IsZero"
+                        else Left "Type Mismatch in IsZero"
                         
 typeof (If x y z) = let t1 = (typeof x)
                         t2 = (typeof y)
@@ -208,39 +211,42 @@ typeof (If x y z) = let t1 = (typeof x)
 interp :: String -> Either String ABE
 interp e = let x = (parseABE e) in
                case (typeof x) of
-                 (Right _) -> let y = (optimize x) in
-                                  case y of
-                                   (Right x) -> (eval x)
+                 (Right _) -> (eval (optimize x))
                  (Left y) -> (Left y)
+                 
+interpOp e = let x = (parseABE e) in
+               case (typeof x) of
+                 (Right _) -> (eval x)
+                 (Left y) -> (Left y) 
                   
 --Second Problem--
 
-optimize :: ABE -> Either String ABE
+optimize :: ABE -> ABE
 
-optimize (Number x) = Right(Number x)
+optimize (Number x) = (Number x)
 
-optimize (Boolean x) = Right(Boolean x)
+optimize (Boolean x) = (Boolean x)
 
 optimize (Plus x (Number 0)) = (optimize x)
 
 optimize (Plus (Number 0) y) = (optimize y)
 
-optimize (Plus x y) = Right(Plus x y)
+optimize (Plus x y) = (Plus (optimize x) (optimize y))
 
-optimize (Minus x y) = Right(Minus x y)
+optimize (Minus x y) = (Minus (optimize x) (optimize y))
 
-optimize (Mul x y) = Right(Mul x y)
+optimize (Mul x y) = (Mul (optimize x) (optimize y))
 
-optimize (Div x y) = Right(Div x y)
+optimize (Div x y) = (Div (optimize x) (optimize y))
 
-optimize (And x y) = Right(And x y)
+optimize (And x y) = (And (optimize x) (optimize y))
 
-optimize (Leq x y) = Right(Leq x y)
+optimize (Leq x y) = (Leq (optimize x) (optimize y))
 
-optimize (IsZero x) = Right(IsZero x)
+optimize (IsZero x) = (IsZero (optimize x))
 
 optimize (If (Boolean True) x y) = (optimize x)
 
 optimize (If (Boolean False) x y) = (optimize y)
 
-optimize (If x y z) = Right(If x y z)
+optimize (If x y z) = (If (optimize x) (optimize y) (optimize z))

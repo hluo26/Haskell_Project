@@ -14,3 +14,4 @@ Executable project2
       parsec -any
   other-modules:
       ParserUtils
+      Test

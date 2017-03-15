@@ -240,19 +240,20 @@ evals (If x y z) = let t1 = (evals x)
                      (Right (Boolean v)) -> if v then (evals y) else (evals z)
                      (Right _) -> (Left "Type error in If")
                      
-evals (Seq x y) = do
-  t1 <- (evals x)
-  t2 <- (evals y)
-  case t1 of 
-    (Num v1) -> case t2 of
-                (Num v2) -> (Right(Num v2))
-                (Boolean _) -> (Left "Type Error in Seq")
-    (Boolean _) -> (Left "Type Error in Seq")
+evals (Seq x y) = let t1 = (evals x)
+                      t2 = (evals y)
+                   in case t1 of 
+                     (Left _) -> t1
+                     (Right v1) -> case t2 of
+                          (Left _) ->t2
+                          (Right v2) -> t2
+                          (Right _) -> (Left "Type error in Seq")
+                     (Right _) -> (Left "Type error in Seq")
     
 evals (Print x) = let t1 = (evals x)
                   in case t1 of 
                      (Left _) -> t1
-                     (Right fx) -> seq (print t1) Right (Num 0)
+                     (Right x) -> seq (print t1) Right (Num 0)
                      
   
 -- env function

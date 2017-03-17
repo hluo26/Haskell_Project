@@ -6,3 +6,11 @@ evals (Num 8)
 interp "4"
 
 interps "print 5"
+
+interpEx "rest (cons 1 (cons 2 empty))"
+
+interpEx "first (cons 1 empty)"
+
+interpEx "isEmpty empty"
+
+interpEx "isEmpty cons 1 empty"

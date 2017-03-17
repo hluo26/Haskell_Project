@@ -161,6 +161,12 @@ parseBBAE = parseString expr
 
 parseBBAEFile = parseFile expr
 
+-- New Parser invocation
+
+parseBBAEL = parseString expr
+
+parseBBAELFile = parseFile expr
+
 -- subst function
 
 subst :: String -> BBAE -> BBAE -> BBAE
@@ -347,9 +353,32 @@ eval env (Print x) = let t1 = (eval env x)
                      (Left _) -> t1
                      (Right x) -> seq (print t1) Right (Num 0)
                      
+eval env (Cons x y) = do
+  t1 <- (eval env x)
+  t2 <- (eval env y)
+  return (Cons t1 t2)
+  
+eval env (First x) = let Right t1 = (eval env x)
+  in case t1 of
+    Cons y z -> Right y
+    _ -> Left "Not a list"
+    
+eval env (Rest x) = let Right t1 = (eval env x)
+  in case t1 of 
+    Cons y z -> Right z
+    _ -> Left "Not a list"
+    
+eval env (IsEmpty x) = let Right t1 = (eval env x)
+  in case t1 of
+    Empty -> Right (Boolean True)
+    _ -> Right (Boolean False)
+    
+eval env (Empty) = Right (Empty)
+                     
 
 interps :: String -> (Either String BBAE)
 interps = evals . parseBBAE
 
 interp :: String -> (Either String BBAE)
-interp = (eval []) . parseBBAE 
+interp = (eval []) . parseBBAE
+interpEx e = let p = parseBBAEL e in (eval [] p)

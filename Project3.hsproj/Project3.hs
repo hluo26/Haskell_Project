@@ -19,6 +19,8 @@ import Text.ParserCombinators.Parsec.Token
 -- Imports for PLIH
 import ParserUtils
 
+-- Imports for print
+--import System.IO.Unsafe
 --
 -- Simple caculator with variables extended Booleans and both static and
 -- dynamic type checking.
@@ -252,16 +254,102 @@ evals (Seq x y) = let t1 = (evals x)
     
 evals (Print x) = let t1 = (evals x)
                   in case t1 of 
-                     (Left _) -> t1
-                     (Right x) -> seq (print t1) Right (Num 0)
-                     
+                    (Left _) -> t1
+                    (Right x) -> seq (print t1) Right (Num 0)                     
   
 -- env function
 
---eval :: Env -> BBAE -> (Either String BBAE)
+type Env = [(String,BBAE)]
 
+eval :: Env -> BBAE -> (Either String BBAE)
 
+eval env (Num x) = Right(Num x)
+
+eval env (Plus x y) =
+  let t1 = (eval env x)
+      t2 = (eval env y)
+      in case t1 of
+       (Left m) -> t1
+       (Right (Num v1)) -> case t2 of
+                            (Left m) -> t2
+                            (Right (Num v2)) -> (Right (Num (v1+v2)))
+                            (Right _) -> (Left "Type Error in +")
+       (Right _) -> (Left "Type Error in +")
+       
+eval env (Minus x y) =
+  let t1 = (eval env x)
+      t2 = (eval env y)
+      in case t1 of
+       (Left m) -> t1
+       (Right (Num v1)) -> case t2 of
+                            (Left m) -> t2
+                            (Right (Num v2)) -> (Right (Num (v1-v2)))
+                            (Right _) -> (Left "Type Error in -")
+       (Right _) -> (Left "Type Error in -")
+       
+eval env (Bind i v b) = do
+   t1 <- (eval env v) 
+   eval ((i,t1):env) b
+   
+eval env (Id id) = case (lookup id env) of
+                     Just x -> Right x
+                     Nothing -> error "Variable not found"
+                     
+eval env (Boolean x) = Right(Boolean x)
+
+eval env (And x y) = 
+  let t1 = (eval env x)
+      t2 = (eval env y)
+      in case t1 of
+       (Left m) -> t1
+       (Right (Boolean v1)) -> case t2 of
+                            (Left m) -> t2
+                            (Right (Boolean v2)) -> (Right (Boolean (v1&&v2)))
+                            (Right _) -> (Left "Type Error in &&")
+       (Right _) -> (Left "Type Error in &&")
+       
+
+eval env (Leq x y) = 
+  let t1 = (eval env x)
+      t2 = (eval env y)
+      in case t1 of
+       (Left m) -> t1
+       (Right (Num v1)) -> case t2 of
+                            (Left m) -> t2
+                            (Right (Num v2)) -> (Right (Boolean (v1<=v2)))
+                            (Right _) -> (Left "Type Error in <=")
+       (Right _) -> (Left "Type Error in <=")
+       
+eval env (IsZero x) = do
+  t1 <- (eval env x)
+  case t1 of 
+     (Num v1) -> (Right(Boolean(v1==0)))
+     (Boolean _) -> (Left "Type Error in IsZero")
+     
+eval env (If x y z) = let t1 = (eval env x)
+                     in case t1 of
+                     (Left _) -> t1
+                     (Right (Boolean v)) -> if v then (eval env y) else (eval env z)
+                     (Right _) -> (Left "Type error in If")
+                     
+eval env (Seq x y) = let t1 = (eval env x)
+                         t2 = (eval env y)
+                   in case t1 of 
+                     (Left _) -> t1
+                     (Right v1) -> case t2 of
+                          (Left _) ->t2
+                          (Right v2) -> t2
+                          (Right _) -> (Left "Type error in Seq")
+                     (Right _) -> (Left "Type error in Seq")
     
+eval env (Print x) = let t1 = (eval env x)
+                  in case t1 of 
+                     (Left _) -> t1
+                     (Right x) -> seq (print t1) Right (Num 0)
+                     
 
 interps :: String -> (Either String BBAE)
 interps = evals . parseBBAE
+
+interp :: String -> (Either String BBAE)
+interp = (eval []) . parseBBAE 

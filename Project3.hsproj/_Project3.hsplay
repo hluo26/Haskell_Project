@@ -1,2 +1,8 @@
 -- Haskell Playground 1.0
-interps "Seq(2-4)(3+5)"
+interps "Seq(True && False)(3+5)"
+
+evals (Num 8)
+
+interp "4"
+
+interps "print 5"

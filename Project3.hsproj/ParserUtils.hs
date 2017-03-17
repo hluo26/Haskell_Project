@@ -7,6 +7,7 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Token
+--import System.IO.Unsafe
 
 -- Parser
 

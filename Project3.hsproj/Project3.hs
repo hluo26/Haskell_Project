@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs #-}
 
-module Proj2Utils where
+module Project3 where
 
 -- Imports for QuickCheck
 import System.Random
@@ -184,6 +184,16 @@ subst i v (Bind x y z) = if i==x
 subst i v (Id x) = if i ==x
                    then v
                    else (Id x)
+                   
+subst _ _ (Boolean x) = (Boolean x)
+
+subst i v (And x y) = (And (subst i v x)(subst i v y))
+
+subst i v (Leq x y) = (Leq (subst i v x)(subst i v y))
+
+subst i v (IsZero x) = (IsZero (subst i v x))
+
+subst i v (If x y z) = If (subst i v x)(subst i v y)(subst i v z)
 
 -- eval function
 
@@ -214,7 +224,7 @@ evals (Bind i v b) = do
   (evals (subst i t1 b))
     
     
-evals (Id id) = error "Undeclared Variable"
+evals (Id id) = (Left "Undeclared Variable")
                                                  
 evals (Boolean x) = (Right(Boolean x))
 
@@ -299,7 +309,7 @@ eval env (Bind i v b) = do
    
 eval env (Id id) = case (lookup id env) of
                      Just x -> Right x
-                     Nothing -> error "Variable not found"
+                     Nothing -> Left "Variable not found"
                      
 eval env (Boolean x) = Right(Boolean x)
 
@@ -357,6 +367,7 @@ eval env (Cons x y) = do
   t1 <- (eval env x)
   t2 <- (eval env y)
   return (Cons t1 t2)
+
   
 eval env (First x) = let Right t1 = (eval env x)
   in case t1 of

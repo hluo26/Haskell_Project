@@ -14,3 +14,9 @@ interpEx "first (cons 1 empty)"
 interpEx "isEmpty empty"
 
 interpEx "isEmpty cons 1 empty"
+
+evals (parseBBAE "bind a = true in if a && false then a else false")
+
+interp "bind a = true in if a && false then a else false"
+
+interp "bind a =7 in isZero a+3-10"

@@ -1,5 +1,5 @@
 -- Haskell Playground 1.0
-testParser
-testSubst
-testEnv
-testList
+testingParser
+testingSubst
+testingEnv
+testingList

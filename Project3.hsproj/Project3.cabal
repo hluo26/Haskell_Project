@@ -7,7 +7,7 @@ stability: experimental
 x-ghc-framework-version: 7.10.3-5.18-2
 x-last-ide-version: HfM1.3.2
 Executable Project3
-  main-is: Project3.hs
+  main-is: Part1.hs
   buildable: True
   build-depends:
       base -any,
@@ -16,4 +16,5 @@ Executable Project3
       parsec -any
   other-modules:
       ParserUtils
+      Part2
       Test

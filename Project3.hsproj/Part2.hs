@@ -1,6 +1,8 @@
+--Name: Hao Luo--
+--KUID: 2737588--
 {-# LANGUAGE GADTs #-}
 
-module Project3 where
+module Part2 where
 
 -- Imports for QuickCheck
 import System.Random
@@ -20,7 +22,7 @@ import Text.ParserCombinators.Parsec.Token
 import ParserUtils
 
 -- Imports for print
---import System.IO.Unsafe
+import System.IO.Unsafe
 --
 -- Simple caculator with variables extended Booleans and both static and
 -- dynamic type checking.
@@ -28,35 +30,35 @@ import ParserUtils
 -- Author: Perry Alexander
 -- Date: Wed Jul 13 11:24:46 CDT 2016
 --
--- Source files for the Boolean Binding Arithmetic Expressions (BBAE)
+-- Source files for the Boolean Binding Arithmetic Expressions (BBAEL)
 -- language from PLIH
 --
 
--- BBAE AST Definition
+-- BBAEL AST Definition
 
-data BBAE where
-  Num :: Int -> BBAE
-  Plus :: BBAE -> BBAE -> BBAE
-  Minus :: BBAE -> BBAE -> BBAE
-  Bind :: String -> BBAE -> BBAE -> BBAE
-  Id :: String -> BBAE
-  Boolean :: Bool -> BBAE
-  And :: BBAE -> BBAE -> BBAE
-  Leq :: BBAE -> BBAE -> BBAE
-  IsZero :: BBAE -> BBAE
-  If :: BBAE -> BBAE -> BBAE -> BBAE
-  Seq :: BBAE -> BBAE -> BBAE
-  Print :: BBAE -> BBAE
-  Cons :: BBAE -> BBAE -> BBAE
-  First :: BBAE -> BBAE
-  Rest :: BBAE -> BBAE
-  IsEmpty :: BBAE -> BBAE
-  Empty :: BBAE
+data BBAEL where
+  Num :: Int -> BBAEL
+  Plus :: BBAEL -> BBAEL -> BBAEL
+  Minus :: BBAEL -> BBAEL -> BBAEL
+  Bind :: String -> BBAEL -> BBAEL -> BBAEL
+  Id :: String -> BBAEL
+  Boolean :: Bool -> BBAEL
+  And :: BBAEL -> BBAEL -> BBAEL
+  Leq :: BBAEL -> BBAEL -> BBAEL
+  IsZero :: BBAEL -> BBAEL
+  If :: BBAEL -> BBAEL -> BBAEL -> BBAEL
+  Seq :: BBAEL -> BBAEL -> BBAEL
+  Print :: BBAEL -> BBAEL
+  Cons :: BBAEL -> BBAEL -> BBAEL
+  First :: BBAEL -> BBAEL
+  Rest :: BBAEL -> BBAEL
+  IsEmpty :: BBAEL -> BBAEL
+  Empty :: BBAEL
   deriving (Show,Eq)
 
 -- Parser
 
-expr :: Parser BBAE
+expr :: Parser BBAEL
 expr = buildExpressionParser opTable term
 
 opTable = [ [ inFix "+" Plus AssocLeft
@@ -66,15 +68,15 @@ opTable = [ [ inFix "+" Plus AssocLeft
           , [ inFix "&&" And AssocLeft ]
           ]
 
-numExpr :: Parser BBAE
+numExpr :: Parser BBAEL
 numExpr = do i <- integer lexer
              return (Num (fromInteger i))
 
-identExpr :: Parser BBAE
+identExpr :: Parser BBAEL
 identExpr = do i <- identifier lexer
                return (Id i)
 
-bindExpr :: Parser BBAE
+bindExpr :: Parser BBAEL
 bindExpr = do reserved lexer "bind"
               i <- identifier lexer
               reservedOp lexer "="
@@ -83,15 +85,15 @@ bindExpr = do reserved lexer "bind"
               e <- expr
               return (Bind i v e)
 
-trueExpr :: Parser BBAE
+trueExpr :: Parser BBAEL
 trueExpr = do i <- reserved lexer "true"
               return (Boolean True)
 
-falseExpr :: Parser BBAE
+falseExpr :: Parser BBAEL
 falseExpr = do i <- reserved lexer "false"
                return (Boolean False)
 
-ifExpr :: Parser BBAE
+ifExpr :: Parser BBAEL
 ifExpr = do reserved lexer "if"
             c <- expr
             reserved lexer "then"
@@ -100,39 +102,39 @@ ifExpr = do reserved lexer "if"
             e <- expr
             return (If c t e)
             
-seqExpr :: Parser BBAE
+seqExpr :: Parser BBAEL
 seqExpr = do reserved lexer "seq"
              f <- expr
              s <- expr
              return (Seq f s)
 
-printExpr :: Parser BBAE
+printExpr :: Parser BBAEL
 printExpr = do reserved lexer "print"
                t <- expr
                return (Print t)
 
-consExpr :: Parser BBAE
+consExpr :: Parser BBAEL
 consExpr = do reserved lexer "cons"
               f <- expr
               s <- expr
               return (Cons f s)
 
-firstExpr :: Parser BBAE
+firstExpr :: Parser BBAEL
 firstExpr = do reserved lexer "first"
                t <- expr
                return (First t)
              
-restExpr :: Parser BBAE
+restExpr :: Parser BBAEL
 restExpr = do reserved lexer "rest"
               t <- expr
               return (Rest t)
 
-isEmptyExpr :: Parser BBAE
+isEmptyExpr :: Parser BBAEL
 isEmptyExpr = do reserved lexer "isEmpty"
                  t <- expr
                  return (IsEmpty t)
 
-emptyExpr :: Parser BBAE
+emptyExpr :: Parser BBAEL
 emptyExpr = do reserved lexer "empty"
                return Empty
              
@@ -157,127 +159,16 @@ parseBAEFile = parseFile expr
 
 -- Parser invocation
 
-parseBBAE = parseString expr
-
-parseBBAEFile = parseFile expr
-
--- New Parser invocation
-
 parseBBAEL = parseString expr
 
 parseBBAELFile = parseFile expr
 
--- subst function
 
-subst :: String -> BBAE -> BBAE -> BBAE
-
-subst _ _ (Num x) = (Num x)
-
-subst i v (Plus x y) = (Plus (subst i v x)(subst i v y))
-
-subst i v (Minus x y) = (Minus (subst i v x)(subst i v y))
-
-subst i v (Bind x y z) = if i==x
-                            then (Bind x (subst i v y) z )
-                            else (Bind x (subst i v y) (subst i v z))
-                            
-subst i v (Id x) = if i ==x
-                   then v
-                   else (Id x)
-                   
-subst _ _ (Boolean x) = (Boolean x)
-
-subst i v (And x y) = (And (subst i v x)(subst i v y))
-
-subst i v (Leq x y) = (Leq (subst i v x)(subst i v y))
-
-subst i v (IsZero x) = (IsZero (subst i v x))
-
-subst i v (If x y z) = If (subst i v x)(subst i v y)(subst i v z)
-
--- eval function
-
-evals :: BBAE -> (Either String BBAE)
-
-evals (Num x) = (Right(Num x))
-
-evals (Plus x y) = do
-  t1 <- (evals x)
-  t2 <- (evals y)
-  case t1 of
-    (Num v1) -> case t2 of
-                (Num v2) -> (Right(Num(v1+v2)))
-                (Boolean _) -> (Left "Type Error in +")
-    (Boolean _) -> (Left "Type Error in +")
-    
-evals (Minus x y) = do
-  t1 <- (evals x)
-  t2 <- (evals y)
-  case t1 of
-    (Num v1) -> case t2 of
-                (Num v2) -> (Right(Num(v1-v2)))
-                (Boolean _) -> (Left "Type Error in -")
-    (Boolean _) -> (Left "Type Error in -")
-    
-evals (Bind i v b) = do
-  t1 <- (evals v)
-  (evals (subst i t1 b))
-    
-    
-evals (Id id) = (Left "Undeclared Variable")
-                                                 
-evals (Boolean x) = (Right(Boolean x))
-
-evals (And x y) = do
-  t1 <- (evals x)
-  t2 <- (evals y)
-  case t1 of 
-    (Boolean v1) -> case t2 of
-                (Boolean v2) -> (Right(Boolean(v1 && v2)))
-                (Boolean _) -> (Left "Type Error in &&")
-    (Boolean _) -> (Left "Type Error in &&")
-    
-evals (Leq x y) = do
-  t1 <- (evals x)
-  t2 <- (evals y)
-  case t1 of 
-    (Num v1) -> case t2 of
-                (Num v2) -> (Right(Boolean(v1 <= v2)))
-                (Boolean _) -> (Left "Type Error in <=")
-    (Boolean _) -> (Left "Type Error in <=")
-    
-evals (IsZero x) = do
-  t1 <- (evals x)
-  case t1 of 
-     (Num v1) -> (Right(Boolean(v1==0)))
-     (Boolean _) -> (Left "Type Error in IsZero")
-     
-evals (If x y z) = let t1 = (evals x)
-                     in case t1 of
-                     (Left _) -> t1
-                     (Right (Boolean v)) -> if v then (evals y) else (evals z)
-                     (Right _) -> (Left "Type error in If")
-                     
-evals (Seq x y) = let t1 = (evals x)
-                      t2 = (evals y)
-                   in case t1 of 
-                     (Left _) -> t1
-                     (Right v1) -> case t2 of
-                          (Left _) ->t2
-                          (Right v2) -> t2
-                          (Right _) -> (Left "Type error in Seq")
-                     (Right _) -> (Left "Type error in Seq")
-    
-evals (Print x) = let t1 = (evals x)
-                  in case t1 of 
-                    (Left _) -> t1
-                    (Right x) -> seq (print t1) Right (Num 0)                     
-  
 -- env function
 
-type Env = [(String,BBAE)]
+type Env = [(String,BBAEL)]
 
-eval :: Env -> BBAE -> (Either String BBAE)
+eval :: Env -> BBAEL -> (Either String BBAEL)
 
 eval env (Num x) = Right(Num x)
 
@@ -355,41 +246,41 @@ eval env (Seq x y) = let t1 = (eval env x)
                      (Right v1) -> case t2 of
                           (Left _) ->t2
                           (Right v2) -> t2
-                          (Right _) -> (Left "Type error in Seq")
-                     (Right _) -> (Left "Type error in Seq")
+
     
 eval env (Print x) = let t1 = (eval env x)
                   in case t1 of 
                      (Left _) -> t1
-                     (Right x) -> seq (print t1) Right (Num 0)
+                     (Right x) -> seq (unsafePerformIO (print x)) (Right (Num 0))
                      
-eval env (Cons x y) = do
-  t1 <- (eval env x)
-  t2 <- (eval env y)
-  return (Cons t1 t2)
+eval env (Cons x y) = let t1 = (eval env x)
+                          t2 = (eval env y)
+                      in case t1 of
+                        (Left a) -> t1
+                        (Right b) -> case t2 of
+                          (Left c) -> t2
+                          (Right d) -> Right (Cons b d)
 
   
-eval env (First x) = let Right t1 = (eval env x)
+eval env (First x) = let t1 = (eval env x)
   in case t1 of
-    Cons y z -> Right y
-    _ -> Left "Not a list"
+    (Left a) -> t1  
+    (Right(Cons y z)) -> Right y
+    (Right _) -> Left "This one is not a list"
     
-eval env (Rest x) = let Right t1 = (eval env x)
-  in case t1 of 
-    Cons y z -> Right z
-    _ -> Left "Not a list"
-    
-eval env (IsEmpty x) = let Right t1 = (eval env x)
+eval env (Rest x) = let t1 = (eval env x)
   in case t1 of
-    Empty -> Right (Boolean True)
-    _ -> Right (Boolean False)
+    (Left a) -> t1  
+    (Right(Cons y z)) -> Right z
+    (Right _) -> Left "This one is not a list"
+    
+eval env (IsEmpty x) = let t1 = (eval env x)
+  in case t1 of
+    Left a -> t1
+    Right Empty -> Right (Boolean True)
+    Right _ -> Right (Boolean False)
     
 eval env (Empty) = Right (Empty)
-                     
 
-interps :: String -> (Either String BBAE)
-interps = evals . parseBBAE
-
-interp :: String -> (Either String BBAE)
-interp = (eval []) . parseBBAE
+interpEx :: String -> (Either String BBAEL)
 interpEx e = let p = parseBBAEL e in (eval [] p)

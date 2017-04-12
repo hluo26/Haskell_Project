@@ -216,7 +216,7 @@ interp e = let x = (parseABE e) in
                  
 interpOp e = let x = (parseABE e) in
                case (typeof x) of
-                 (Right _) -> (eval x)
+                 (Right m) -> (eval x)
                  (Left y) -> (Left y) 
                   
 --Second Problem--

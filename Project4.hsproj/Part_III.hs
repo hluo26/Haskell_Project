@@ -181,8 +181,8 @@ parseCFBAEFile = parseFile exprX
 
 data CFAEVal where
   NumV :: Int -> CFAEVal
-  ClosureV :: String -> CFBAE -> Env -> CFAEVal
-  LambdaV :: String -> CFBAE -> CFAEVal
+  ClosureV :: String -> CFAE-> Env -> CFAEVal
+  LambdaV :: String -> CFAE -> CFAEVal
   deriving (Show,Eq)
 
 -- Q3 --
@@ -214,42 +214,45 @@ elabCFBAE (IdX x) = (Id x)
 elabCFBAE (IfX x y z) = (If (elabCFBAE x) (elabCFBAE y) (elabCFBAE z))
 
 
+evalStatCFBE :: Env -> CFAE -> CFAEVal
+
+evalStatCFBE env (Num x) = (NumV x)
+
+evalStatCFBE env (Plus x y) = let (NumV t1) = (evalStatCFBE env x)
+                                  (NumV t2) = (evalStatCFBE env y)
+                              in (NumV(t1+t2))
+                              
+evalStatCFBE env (Minus x y) = let (NumV t1)= (evalStatCFBE env x)
+                                   (NumV t2) = (evalStatCFBE env y)
+                               in (NumV(t1-t2))
+                               
+evalStatCFBE env (Mult x y) = let (NumV t1) = (evalStatCFBE env x)
+                                  (NumV t2) = (evalStatCFBE env y)
+                              in (NumV(t1*t2))
+                              
+evalStatCFBE env (Div x y) = let (NumV t1) = (evalStatCFBE env x)
+                                 (NumV t2) = (evalStatCFBE env y)
+                              in (NumV(div t1 t2))
+                              
+evalStatCFBE env (Lambda i b) = (ClosureV i b env)
+
+evalStatCFBE env (App x y) = let (ClosureV i b e) = (evalStatCFBE env x)
+                                 a = (evalStatCFBE env y)
+                                in evalStatCFBE ((i,a):e) b
+                      
+evalStatCFBE env (Id x) = case (lookup x env) of
+                        Just x -> x
+                        Nothing -> error "Varible not found" 
+                        
+evalStatCFBE env (If x y z) = let (NumV t1) = (evalStatCFBE env x)
+                              in if t1==0 then (evalStatCFBE env y) else (evalStatCFBE env z)
+
+
 -- eval --
 
 evalCFBAE :: Env -> CFBAE -> CFAEVal
 
-evalCFBAE env (NumX x) = (NumV x)
-
-evalCFBAE env (PlusX x y) = let (NumV t1) = (evalCFBAE env x)
-                                (NumV t2) = (evalCFBAE env y)
-                             in (NumV (t1 + t2))
-                             
-evalCFBAE env (MinusX x y) = let (NumV t1) = (evalCFBAE env x)
-                                 (NumV t2) = (evalCFBAE env y)
-                             in (NumV (t1 - t2))
-
-evalCFBAE env (MultX x y) = let (NumV t1) = (evalCFBAE env x)
-                                (NumV t2) = (evalCFBAE env y)
-                             in (NumV (t1 * t2))
-                             
-evalCFBAE env (DivX x y) = let (NumV t1) = (evalCFBAE env x)
-                               (NumV t2) = (evalCFBAE env y)
-                             in (NumV (div t1 t2))
-                             
-evalCFBAE env (BindX i b e) = evalCFBAE((i,(evalCFBAE env b)):env)e
-
-evalCFBAE env (LambdaX i b) = (ClosureV i b env)
-
-evalCFBAE env (AppX x y) = let (ClosureV i b env) = (evalCFBAE env x)
-                               a = (evalCFBAE env y)
-                            in evalCFBAE((i,a):env)b
-                            
-evalCFBAE env (IdX x) = case (lookup x env) of
-                        Just x -> x
-                        Nothing -> error "Varible not found"
-                        
-evalCFBAE env (IfX x y z) = let (NumV t1) = (evalCFBAE env x)
-                              in if t1==0 then (evalCFBAE env y) else (evalCFBAE env z)
+evalCFBAE t = evalStatCFBE[] . (elabCFBAE)
  
 
 interpCFBAE :: String -> CFAEVal

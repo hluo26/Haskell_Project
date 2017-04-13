@@ -5,3 +5,4 @@ interpCFBAE "bind x=4 in lambda x in x+1"
 
 interpCFBAE "bind x=5 in if x then 4 else 1"
 
+--interpCFBAE "bind aaaa = 5 in bind bbb = 7 in (app (lambda x in if 0 then x + 1 else 7777) aaaa) + bbb"

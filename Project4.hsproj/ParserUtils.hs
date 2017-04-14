@@ -23,7 +23,9 @@ languageDef =
                               , "false"
                               , "lambda"
                               , "fix"
-                              , "app" ]
+                              , "app"
+                              , "inc"
+                              , "dec" ]
             , reservedOpNames = [ "+","-","*","/","&&","||","<=","="]
             }
   

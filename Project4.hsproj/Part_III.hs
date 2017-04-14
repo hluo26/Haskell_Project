@@ -89,6 +89,7 @@ term = parens lexer expr
        <|> ifExpr
        <|> lambdaExpr
        <|> appExpr
+       
              
 -- Parser invocation
 
@@ -112,6 +113,8 @@ data CFBAE where
   AppX :: CFBAE -> CFBAE -> CFBAE
   IdX :: String -> CFBAE
   IfX :: CFBAE -> CFBAE -> CFBAE -> CFBAE
+  IncX :: CFBAE -> CFBAE
+  DecX :: CFBAE -> CFBAE
   deriving (Show,Eq)
 
 -- Parser
@@ -163,8 +166,18 @@ ifExprX = do reserved lexer "if"
              reserved lexer "else"
              e <- exprX
              return (IfX c t e)
-            
              
+incExprX :: Parser CFBAE
+incExprX = do reserved lexer "inc"
+              i <- exprX
+              return (IncX i)
+              
+decExprX :: Parser CFBAE
+decExprX = do reserved lexer "dec"
+              i <- exprX
+              return (DecX i)
+
+                         
 termX = parens lexer exprX
        <|> numExprX
        <|> identExprX
@@ -172,6 +185,9 @@ termX = parens lexer exprX
        <|> ifExprX
        <|> lambdaExprX
        <|> appExprX
+       <|> incExprX
+       <|> decExprX
+       
              
 -- Parser invocation
 
@@ -212,6 +228,10 @@ elabCFBAE (AppX x y) = let (Lambda i b) = (elabCFBAE x)
 elabCFBAE (IdX x) = (Id x)
 
 elabCFBAE (IfX x y z) = (If (elabCFBAE x) (elabCFBAE y) (elabCFBAE z))
+
+elabCFBAE (IncX x) = (Plus (elabCFBAE x)(Num 1))
+
+elabCFBAE (DecX x) = (Minus (elabCFBAE x)(Num 1))
 
 
 evalStatCFBE :: Env -> CFAE -> CFAEVal

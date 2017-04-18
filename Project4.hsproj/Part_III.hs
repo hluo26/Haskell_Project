@@ -36,6 +36,7 @@ data CFAE where
   Mult :: CFAE -> CFAE -> CFAE
   Div :: CFAE -> CFAE -> CFAE
   Lambda :: String -> CFAE -> CFAE
+  Closure :: String -> CFAE -> Env -> CFAE
   App :: CFAE -> CFAE -> CFAE
   Id :: String -> CFAE
   If :: CFAE -> CFAE -> CFAE -> CFAE
@@ -89,7 +90,6 @@ term = parens lexer expr
        <|> ifExpr
        <|> lambdaExpr
        <|> appExpr
-       
              
 -- Parser invocation
 
@@ -113,8 +113,6 @@ data CFBAE where
   AppX :: CFBAE -> CFBAE -> CFBAE
   IdX :: String -> CFBAE
   IfX :: CFBAE -> CFBAE -> CFBAE -> CFBAE
-  IncX :: CFBAE -> CFBAE
-  DecX :: CFBAE -> CFBAE
   deriving (Show,Eq)
 
 -- Parser
@@ -166,18 +164,8 @@ ifExprX = do reserved lexer "if"
              reserved lexer "else"
              e <- exprX
              return (IfX c t e)
+            
              
-incExprX :: Parser CFBAE
-incExprX = do reserved lexer "inc"
-              i <- exprX
-              return (IncX i)
-              
-decExprX :: Parser CFBAE
-decExprX = do reserved lexer "dec"
-              i <- exprX
-              return (DecX i)
-
-                         
 termX = parens lexer exprX
        <|> numExprX
        <|> identExprX
@@ -185,8 +173,6 @@ termX = parens lexer exprX
        <|> ifExprX
        <|> lambdaExprX
        <|> appExprX
-       <|> incExprX
-       <|> decExprX
        
              
 -- Parser invocation
@@ -221,17 +207,13 @@ elabCFBAE (BindX i b e) = (App (Lambda i (elabCFBAE e)) (elabCFBAE b))
 
 elabCFBAE (LambdaX x y) = (Lambda x (elabCFBAE y))
 
-elabCFBAE (AppX x y) = let (Lambda i b) = (elabCFBAE x)
-                           a = (elabCFBAE y)
-                          in (App (Lambda i b) a)
+elabCFBAE (AppX x y) = let a = (elabCFBAE x)
+                           b = (elabCFBAE y)
+                          in (App a b)
                           
 elabCFBAE (IdX x) = (Id x)
 
 elabCFBAE (IfX x y z) = (If (elabCFBAE x) (elabCFBAE y) (elabCFBAE z))
-
-elabCFBAE (IncX x) = (Plus (elabCFBAE x)(Num 1))
-
-elabCFBAE (DecX x) = (Minus (elabCFBAE x)(Num 1))
 
 
 evalStatCFBE :: Env -> CFAE -> CFAEVal
@@ -262,7 +244,7 @@ evalStatCFBE env (App x y) = let (ClosureV i b e) = (evalStatCFBE env x)
                       
 evalStatCFBE env (Id x) = case (lookup x env) of
                         Just x -> x
-                        Nothing -> error "Varible not found" 
+                        Nothing -> error ("Varible not found: " ++ x)
                         
 evalStatCFBE env (If x y z) = let (NumV t1) = (evalStatCFBE env x)
                               in if t1==0 then (evalStatCFBE env y) else (evalStatCFBE env z)
@@ -272,9 +254,16 @@ evalStatCFBE env (If x y z) = let (NumV t1) = (evalStatCFBE env x)
 
 evalCFBAE :: Env -> CFBAE -> CFAEVal
 
-evalCFBAE t = evalStatCFBE[] . (elabCFBAE)
+evalCFBAE env cfb = evalStatCFBE env (elabCFBAE cfb)
+
+-- prelude --
+
+prelude1 ::Env
+
+prelude1 = [("inc", (ClosureV "x" (Plus (Id "x") (Num 1)) [])), 
+            ("dec", (ClosureV "x" (Minus (Id "x") (Num 1)) []))]
  
 
 interpCFBAE :: String -> CFAEVal
 
-interpCFBAE = evalCFBAE[] . parseCFBAE
+interpCFBAE str = evalCFBAE prelude1 (parseCFBAE str)

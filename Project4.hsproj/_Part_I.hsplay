@@ -1,2 +1,4 @@
 -- Haskell Playground 1.0
-interpDynCFAE "app lambda x in x+1 4"
+interpDynCFAE "app (lambda x in x+1) 5"
+
+interpDynCFAE "(app (lambda n in (app (lambda f in (app (lambda n in (app f 3)) 1)) (lambda x in x + n))) 5)"

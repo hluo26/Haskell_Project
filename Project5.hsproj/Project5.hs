@@ -188,6 +188,23 @@ data CFBAValue where
   deriving (Show,Eq)
 
 
+subst :: String -> FBAE -> FBAE -> FBAE
+
+subst _ _ (Num x) = (Num x)
+
+subst i v (Plus l r) = (Plus (subst i v l) (subst i v r))
+
+subst i v (Minus l r) = (Minus (subst i v l) (subst i v r))
+subst i v (Bind i' v' b') = if i==i'
+                         then (Bind i' (subst i v v') b')
+                         else (Bind i' (subst i v v') (subst i v b'))
+                         
+subst i v (Id i') = if i==i'
+                 then v
+                 else (Id i')
+                 
+subst i v (Lambda x y z) = (Lambda x y (subst i v z))
+
 
 --Q1--
 
@@ -215,7 +232,7 @@ eval env (Mult x y) = let (NumV t1) = (eval env x)
                           
 eval env (Div x y) = let (NumV t1) = (eval env x)
                          (NumV t2) = (eval env y)
-                          in (NumV (div t1 t2))
+                          in if t2 == 0 then error "Running time error" else (NumV (div t1 t2))
                           
 eval env (Lambda i x b) = ClosureV i b env
 
@@ -245,6 +262,12 @@ eval env (IsZero x) = let (NumV t1) = (eval env x)
                         
 eval env (If x y z) = let (BooleanV t1) = (eval env x)
                       in if t1 then (eval env y) else (eval env z)
+                                            
+
+-- Q2 --
+
+eval env (Fix f) = let (ClosureV i b e) = (eval env f) in
+                     eval e (subst i (Fix (Lambda i TNum b)) b)
                       
                       
 interp :: String -> CFBAValue

@@ -192,9 +192,16 @@ subst :: String -> FBAE -> FBAE -> FBAE
 
 subst _ _ (Num x) = (Num x)
 
+subst _ _ (Boolean x) = (Boolean x)
+
 subst i v (Plus l r) = (Plus (subst i v l) (subst i v r))
 
 subst i v (Minus l r) = (Minus (subst i v l) (subst i v r))
+
+subst i v (Mult l r) = (Mult (subst i v l) (subst i v r))
+
+subst i v (Div l r) = (Div (subst i v l) (subst i v r))
+
 subst i v (Bind i' v' b') = if i==i'
                          then (Bind i' (subst i v v') b')
                          else (Bind i' (subst i v v') (subst i v b'))
@@ -204,6 +211,22 @@ subst i v (Id i') = if i==i'
                  else (Id i')
                  
 subst i v (Lambda x y z) = (Lambda x y (subst i v z))
+
+subst i v (App x y) = (App (subst i v x) y)
+
+subst i v (If x y z) = (If (subst i v x)(subst i v y)(subst i v z))
+
+subst i v (Fix x) = (Fix x)
+
+subst i v (And x y) = (And (subst i v x)(subst i v y))
+
+subst i v (Leq x y) = (Leq (subst i v x)(subst i v y))
+
+subst i v (IsZero x) = (IsZero (subst i v x))
+
+subst i v (If x y z) = If (subst i v x)(subst i v y)(subst i v z)
+
+subst i v (Or x y) = (Or (subst i v x)(subst i v y))
 
 
 --Q1--
@@ -360,15 +383,3 @@ interp :: String -> FBAEValue
 interp p = let x = parseFBAE p
               in case typeof [] x of
                 a -> eval [] x
-
-
-
-
-
-
-
-
-
-
-
-

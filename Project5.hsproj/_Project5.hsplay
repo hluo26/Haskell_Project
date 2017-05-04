@@ -1,8 +1,14 @@
 -- Haskell Playground 1.0
-interp "bind n = 1 in bind f = (lambda (x:Nat) in x + n) in bind n = true in app f 1"
+interp "bind n = 1 in bind f = (lambda (x:Nat) in x + n) in bind n = 10 in app f 1"
 
 interp "bind x=1 in x+1"
 
 interp "app(lambda (x:Nat) in x+1)4"
 
 interp "lambda (x:Nat) in x+1"
+
+interp "bind n = 5 in bind f = (lambda (x:Nat) in x+n) in bind n = 1 in app f 3"
+
+interp "bind fact = (lambda (g:Nat) in (lambda (x:Nat) in (if (isZero x) then 1 else x * (app g x-1)))) in bind factorial = (fix fact) in (app factorial 3)"
+
+

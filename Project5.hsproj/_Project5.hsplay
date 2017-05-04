@@ -1,1 +1,8 @@
 -- Haskell Playground 1.0
+interp "bind n = 1 in bind f = (lambda (x:Nat) in x + n) in bind n = true in app f 1"
+
+interp "bind x=1 in x+1"
+
+interp "app(lambda (x:Nat) in x+1)4"
+
+interp "lambda (x:Nat) in x+1"

@@ -180,11 +180,11 @@ parseFile p file =
 
 parseFBAEFile = parseFile expr
 
-data CFBAValue where
-  NumV :: Int -> CFBAValue
-  BooleanV :: Bool -> CFBAValue
-  ClosureV :: String -> FBAE -> Env -> CFBAValue
-  LambdaV :: String -> FBAE -> CFBAValue
+data FBAEValue where
+  NumV :: Int -> FBAEValue
+  BooleanV :: Bool -> FBAEValue
+  ClosureV :: String -> FBAE -> Env -> FBAEValue
+  LambdaV :: String -> FBAE -> FBAEValue
   deriving (Show,Eq)
 
 
@@ -208,9 +208,9 @@ subst i v (Lambda x y z) = (Lambda x y (subst i v z))
 
 --Q1--
 
-type Env = [(String,CFBAValue)]
+type Env = [(String,FBAEValue)]
 
-eval :: Env -> FBAE -> CFBAValue
+eval :: Env -> FBAE -> FBAEValue
 
 eval env (Num x) = (NumV x)
 
@@ -234,7 +234,7 @@ eval env (Div x y) = let (NumV t1) = (eval env x)
                          (NumV t2) = (eval env y)
                           in if t2 == 0 then error "Running time error" else (NumV (div t1 t2))
                           
-eval env (Lambda i x b) = ClosureV i b env
+eval env (Lambda i x b) = (ClosureV i b env)
 
 eval env (Bind i b e) = let t1 = (eval env b)
                         in eval ((i,t1):env)e
@@ -270,9 +270,105 @@ eval env (Fix f) = let (ClosureV i b e) = (eval env f) in
                      eval e (subst i (Fix (Lambda i TNum b)) b)
                       
                       
-interp :: String -> CFBAValue
+--interp :: String -> CFBAValue
 
-interp = eval[] . parseFBAE
+--interp = eval[] . parseFBAE
+
+
+-- Q3 --
+
+type Cont = [(String,TFBAE)]
+
+typeof :: Cont -> FBAE -> TFBAE
+
+typeof cont (Num x) = TNum
+
+typeof cont (Boolean x) = TBool
+
+typeof cont (Plus x y) = let t1 = (typeof cont x)
+                             t2 = (typeof cont y)
+                          in if t1 == (TNum) && t2 == (TNum)
+                          then TNum else error "Type Mismatch in +"
+                          
+typeof cont (Minus x y) = let t1 = (typeof cont x)
+                              t2 = (typeof cont y)
+                          in if t1 == (TNum) && t2 == (TNum)
+                          then TNum else error "Type Mismatch in -"
+                          
+
+typeof cont (Mult x y) = let t1 = (typeof cont x)
+                             t2 = (typeof cont y)
+                          in if t1 == (TNum) && t2 == (TNum)
+                          then TNum else error "Type Mismatch in *"
+                          
+typeof cont (Div x y) = let t1 = (typeof cont x)
+                            t2 = (typeof cont y)
+                          in if t1 == (TNum) && t2 == (TNum)
+                          then TNum else error "Type Mismatch in /"
+                          
+typeof cont (Bind i v b) = let t1 = (typeof cont v)
+                           in typeof ((i,t1):cont)b
+                           
+typeof cont (Lambda i d v) = let t1 = typeof((i,d):cont)v
+                              in d:->: t1
+                              
+typeof cont (App x y) = let t1 = (typeof cont y)
+                        in case (typeof cont x) of
+                          a :->: b ->
+                            if a==t1
+                              then b
+                                else error "Type mismatch in app"
+                          _ -> error "First argument not lambda in app"
+                          
+
+typeof cont (Id x) = case (lookup x cont) of
+                        Just x -> x
+                        Nothing -> error "Varible not found"
+                        
+typeof cont (And x y) = let t1 = (typeof cont x)
+                            t2 = (typeof cont y)
+                          in if t1 == (TBool) && t2 == (TBool)
+                          then TBool else error "Type Mismatch in &&"
+                          
+typeof cont (Or x y) = let t1 = (typeof cont x)
+                           t2 = (typeof cont y)
+                          in if t1 == (TBool) && t2 == (TBool)
+                          then TBool else error "Type Mismatch in ||"
+                          
+typeof cont (Leq x y) = let t1 = (typeof cont x)
+                            t2 = (typeof cont y)
+                          in if t1 == (TNum) && t2 == (TNum)
+                          then TBool else error "Type Mismatch in <="
+                          
+typeof cont (IsZero x) = let t1 = (typeof cont x)
+                          in if t1 == (TNum) 
+                          then TBool else error "Type Mismatch in iszero"
+                          
+typeof cont (If x y z) = if (typeof cont x) == TNum
+                            && (typeof cont y)==(typeof cont z)
+                         then (typeof cont y)
+                         else error "Type mismatch in if"
+                         
+typeof cont (Fix x) = let r:->:d = typeof cont x
+                      in d
+                      
+
+-- Q4 --
+
+interp :: String -> FBAEValue
+
+interp p = let x = parseFBAE p
+              in case typeof [] x of
+                a -> eval [] x
+
+
+
+
+
+
+
+
+
 
 
 

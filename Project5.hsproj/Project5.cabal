@@ -12,3 +12,5 @@ Executable Project5
   build-depends:
       base -any,
       parsec -any
+  other-modules:
+      Test

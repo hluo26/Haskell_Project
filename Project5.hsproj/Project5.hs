@@ -264,7 +264,7 @@ eval env (Bind i b e) = let t1 = (eval env b)
                         
 eval env (App x y) = let (ClosureV i b e) = (eval env x)
                          t1 = (eval env y)
-                         in eval((i,t1):env)b
+                         in eval((i,t1):e)b
                          
 eval env (Boolean x) = (BooleanV x)
 
@@ -335,13 +335,18 @@ typeof cont (Bind i v b) = let t1 = (typeof cont v)
 typeof cont (Lambda i d v) = let t1 = typeof((i,d):cont)v
                               in d:->: t1
                               
-typeof cont (App x y) = let t1 = (typeof cont y)
-                        in case (typeof cont x) of
-                          a :->: b ->
-                            if a==t1
-                              then b
-                                else error "Type mismatch in app"
-                          _ -> error "First argument not lambda in app"
+typeof cont (App x y) = let t1 = typeof cont y
+                            t2 = typeof cont x
+                          in case t2 of
+                             (tyXd :->: tyXr) -> case t1 of
+                                                   (tyYd :->: tyYr) -> if (tyXd == tyYr)
+                                                                         then tyXr
+                                                                         else error "Type mismatch in App "
+                                                   notLambdaY -> if (tyXd == notLambdaY)
+                                                                   then tyXr
+                                                                   else error ("Type mismatch in App" )
+                             _ -> if (t2 == t1) then t2 else error "First argument not lambda in app"
+
                           
 
 typeof cont (Id x) = case (lookup x cont) of
@@ -367,7 +372,7 @@ typeof cont (IsZero x) = let t1 = (typeof cont x)
                           in if t1 == (TNum) 
                           then TBool else error "Type Mismatch in iszero"
                           
-typeof cont (If x y z) = if (typeof cont x) == TNum
+typeof cont (If x y z) = if (typeof cont x) == TBool
                             && (typeof cont y)==(typeof cont z)
                          then (typeof cont y)
                          else error "Type mismatch in if"
@@ -382,4 +387,6 @@ interp :: String -> FBAEValue
 
 interp p = let x = parseFBAE p
               in case typeof [] x of
-                a -> eval [] x
+                TBool -> eval [] x
+                TNum -> eval [] x
+                d:->:r -> eval [] x
